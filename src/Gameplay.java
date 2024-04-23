@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class Gameplay extends JPanel implements KeyListener, ActionListener {
@@ -87,5 +89,120 @@ public class Gameplay extends JPanel implements KeyListener, ActionListener {
             g.drawString("Press (Enter) to restart the game.", 230, 350);
         }
         g.dispose();
+    }
+
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            if (playerX >= 600) {
+                playerX = 600;
+            } else {
+                moveRight();
+            }
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+            if (playerX < 10) {
+                playerX = 10;
+            } else {
+                moveLeft();
+            }
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+            if (!play) {
+                play = true;
+                ballPositionX = 120;
+                ballPositionY = 350;
+                ballDirectionX = -1;
+                ballDirectionY = -2;
+                playerX = 310;
+                score = 0;
+                totalBricks = 21;
+                map = new MapGenerator(3, 7);
+                repaint();
+
+            }
+        }
+    }
+
+    public void keyReleased(KeyEvent e) {
+
+    }
+
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    public void moveRight() {
+        play = true;
+        playerX += 20;
+    }
+
+    public void moveLeft() {
+        play = true;
+        playerX -= 20;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        timer.start();
+        if (play) {
+            if (new Rectangle(ballPositionX, ballPositionY, 20, 20).intersects(new Rectangle(playerX, 550, 30, 8))) {
+                ballDirectionY = -ballDirectionY;
+                ballDirectionX = -2;
+            } else if (new Rectangle(ballPositionX, ballPositionY, 20, 20).intersects(new Rectangle(playerX + 70, 550, 30, 8))) {
+                ballDirectionY = -ballDirectionY;
+                ballDirectionX = ballDirectionX + 1;
+            } else if (new Rectangle(ballPositionX, ballPositionY, 20, 20).intersects(new Rectangle(playerX + 70, 550, 40, 8))) {
+                ballDirectionY = -ballDirectionY;
+            }
+//            Ball collision
+            A:
+            for (int i = 0; i < map.map.length; i++) {
+                for (int j = 0; j < map.map[0].length; j++) {
+                    if (map.map[i][j] > 0) {
+                        int brickX = j * map.brickWidth + 80;
+                        int brickY = j * map.brickHeight + 50;
+                        int brickWidth = map.brickWidth;
+                        int brickHeight = map.brickHeight;
+
+                        Rectangle rect = new Rectangle(brickX, brickY, brickWidth, brickHeight);
+                        Rectangle ballRect = new Rectangle(ballPositionX, ballPositionY, 20, 20);
+                        Rectangle brickRect = rect;
+
+//                  Brick mechanism of game
+                        if (ballRect.intersects((brickRect))) {
+                            map.setBrickValue(0, i, j);
+                            score += 5;
+                            totalBricks--;
+
+
+//                      Ball hit to right or left of the brick
+                            if (ballPositionX + 19 <= brickRect.x || ballPositionX + 1 >= brickRect.x + brickRect.width) {
+                                ballDirectionX = -ballDirectionX;
+                            } else {
+                                ballDirectionY = -ballDirectionY;
+                            }
+                            break A;
+                        }
+                    }
+                }
+            }
+            ballDirectionX += ballDirectionX;
+            ballDirectionY += ballDirectionY;
+
+            if (ballPositionX < 0) {
+                ballDirectionX = -ballDirectionX;
+            }
+
+            if (ballPositionY < 0) {
+                ballDirectionY = -ballDirectionY;
+            }
+
+            if (ballPositionX > 670) {
+                ballDirectionX = -ballDirectionX;
+            }
+            repaint();
+
+        }
     }
 }
